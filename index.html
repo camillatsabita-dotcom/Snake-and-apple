@@ -1,0 +1,116 @@
+<!<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Realistic FPS</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #000; }
+  canvas { display: block; }
+  #ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-shadow: 0 0 5px #000;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="ui">Health: <span id="hp">100</span></div>
+<script>
+// === Canvas setup ===
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;// === Player === const player = { x: canvas.width / 2, y: canvas.height / 2, angle: 0, speed: 3, health: 100 };
+
+// === NPC Enemy === class Enemy { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.speed = 1.5; this.size = 35; } update() { const dx = player.x - this.x; const dy = player.y - this.y; const dist = Math.hypot(dx, dy); this.x += (dx / dist) * this.speed; this.y += (dy / dist) * this.speed;
+
+if (dist < this.size) player.health -= 0.3;
+
+} draw() { ctx.fillStyle = "#7a0000"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+
+let enemies = [new Enemy(), new Enemy()];
+
+// === Gun recoil + shooting system === let isShooting = false; let bullets = [];
+
+class Bullet { constructor(angle) { this.x = player.x; this.y = player.y; this.angle = angle; this.speed = 12; this.size = 6; } update() { this.x += Math.cos(this.angle) * this.speed; this.y += Math.sin(this.angle) * this.speed; } draw() { ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+
+// === Input === let keys = {}; addEventListener("keydown", e => keys[e.key] = true); addEventListener("keyup", e => keys[e.key] = false);
+
+addEventListener("mousemove", e => { const dx = e.clientX - player.x; const dy = e.clientY - player.y; player.angle = Math.atan2(dy, dx); });
+
+addEventListener("mousedown", () => isShooting = true); addEventListener("mouseup", () => isShooting = false);
+
+function movePlayer() { if (keys["w"]) player.y -= player.speed; if (keys["s"]) player.y += player.speed; if (keys["a"]) player.x -= player.speed; if (keys["d"]) player.x += player.speed; }
+
+function shoot() { if (isShooting) { bullets.push(new Bullet(player.angle)); } }
+
+function updateBullets() { bullets.forEach((bullet, i) => { bullet.update();
+
+enemies.forEach((enemy, j) => {
+  const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
+  if (dist < enemy.size) {
+    enemies.splice(j, 1);
+    enemies.push(new Enemy());
+    bullets.splice(i, 1);
+  }
+});
+
+if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height)
+  bullets.splice(i, 1);
+
+}); }
+
+function drawPlayerWeapon() { ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(player.angle); ctx.fillStyle = "#555"; ctx.fillRect(20, -10, 60, 20); // gun body ctx.restore(); }
+
+function gameOver() { ctx.fillStyle = "white"; ctx.font = "60px Arial"; ctx.fillText("GAME OVER", canvas.width / 2 - 200, canvas.height / 2); }
+
+function loop() { ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+if (player.health <= 0) return gameOver();
+
+movePlayer(); shoot(); updateBullets();
+
+// Draw enemies enemies.forEach(e => { e.update(); e.draw(); });
+
+// Draw bullets bullets.forEach(b => b.draw());
+
+// Draw gun drawPlayerWeapon();
+
+// Update UI document.getElementById("hp").innerText = Math.floor(player.health);
+
+requestAnimationFrame(loop); }
+
+loop(); </script>
+
+</body>
+</html>DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Snake Game</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div id="game-container">
+		<canvas id="gc" class="game-canvas" width="400" height="400"></canvas>
+	</div>
+	<div class="keys">
+	  <a class="up arr" onclick="Snake.action('up')">
+	    <i class="chevron up"></i></a>
+	  <br />
+	  <a class="left arr" onclick="Snake.action('left')">
+	    <i class="chevron left"></i></a>
+	  <a class="down arr" onclick="Snake.action('down')">
+	    <i class="chevron down"></i></a>
+	  <a class="right arr" onclick="Snake.action('right')">
+	    <i class="chevron right"></i></a>
+	</div>
+	<script type="text/javascript" src="game.js"></script>
+</body>
+</html>
